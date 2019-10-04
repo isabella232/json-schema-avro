@@ -67,4 +67,19 @@ public final class Avro2JsonSchemaProcessor
 
         return new CanonicalSchemaTree(tree.getBaseNode());
     }
+
+    public static void main(String[] args) throws java.io.IOException, com.github.fge.jsonschema.core.exceptions.ProcessingException {
+        System.out.println("Reading file " + args[0] + " and writing to " + args[1]);
+
+        com.fasterxml.jackson.databind.JsonNode inputJson = new com.fasterxml.jackson.databind.ObjectMapper().readTree(new java.io.File(args[0]));
+        com.github.fge.jsonschema.core.tree.SchemaTree result = new com.github.fge.avro.Avro2JsonSchemaProcessor().rawProcess(new com.github.fge.jsonschema.core.report.ConsoleProcessingReport(com.github.fge.jsonschema.core.report.LogLevel.INFO), new com.github.fge.jsonschema.core.tree.SimpleJsonTree(inputJson));
+        java.io.File output = new java.io.File(args[1]);
+
+        java.io.BufferedWriter writter = new java.io.BufferedWriter(new java.io.FileWriter(output));
+        writter.write(result.getBaseNode().toString());
+        writter.flush();
+        writter.close();
+    }
 }
+
+
