@@ -60,6 +60,7 @@ buildscript {
 
 apply(plugin: "java");
 apply(plugin: "maven");
+apply(plugin: "maven-publish")
 apply(plugin: "signing");
 apply(plugin: "osgi");
 apply(plugin: "idea");
@@ -108,21 +109,40 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir;
 }
 
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = project.rootProject.group
+            artifactId = project.rootProject.name
+            version = project.rootProject.version
+            from components.java
+            artifact shadowJar
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+    repositories {
+        maven {
+            def baseURL = "https://nexus.unterwegs.io/repository"
+            def releasesRepoUrl = "$baseURL/maven-releases/"
+            def snapshotsRepoUrl = "$baseURL/maven-snapshots/"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+
+            def nexusUser = System.getProperty("PUBLIC_NEXUS_USERNAME")
+            def nexusPass = System.getProperty("PUBLIC_NEXUS_PASSWORD")
+
+            credentials {
+                username = nexusUser
+                password = nexusPass
+            }
+        }
+    }
+}
+
+
 artifacts {
-    archives jar;
+    archives jar
+    archives shadowJar;
     archives sourcesJar;
     archives javadocJar;
 }
-
-/*
- * SIGNING
- */
-
-project.ext {
-    gitrwscm = sprintf("git@github.com:fge/%s", name);
-    gitroscm = sprintf("https://github.com/fge/%s.git", name);
-    projectURL = sprintf("https://github.com/fge/%s", name);
-    sonatypeStaging = "https://oss.sonatype.org/service/local/staging/deploy/maven2/";
-    sonatypeSnapshots = "https://oss.sonatype.org/content/repositories/snapshots/";
-};
-
